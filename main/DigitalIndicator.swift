@@ -1,10 +1,10 @@
 struct DigitalIndicator {
     let pin:OutputPin 
-    let active: Bool
+    let activeLevel: GPIOLevel
     var expectedState: Bool
 
     func set(on:Bool) {
-        let level = on ? active : !active
+        let level = on ? activeLevel.asBool : !activeLevel.asBool
         pin.setLevel(levelHigh:level)
     }
 
@@ -38,10 +38,9 @@ struct DigitalIndicator {
 }
 
 extension DigitalIndicator {
-    init?(_ pinNum: UInt32, activeLow:Bool = true, useInternalHardware:Bool = true) {
-        self.pin = OutputPin(pinNumber: pinNum, activeLow:activeLow, useInternalHardware:useInternalHardware)
-        self.active = !activeLow
+    init?(_ pinNum: UInt32, activeLow:Bool = true) {
+        self.pin = OutputPin(pinNumber: pinNum, activeLow:activeLow)
+        self.activeLevel = GPIOLevel(!activeLow)
         self.expectedState = false
     }
-    
 }
