@@ -26,14 +26,14 @@ struct DigitalIndicator {
 
     mutating func blink(millis:UInt32) {
         self.toggle()  // Toggle the boolean value
-        vTaskDelay(millis / (1000 / UInt32(configTICK_RATE_HZ)))
+        delay(millis)
     }
 
     mutating func blink(onMillis:UInt32, offMillis:UInt32) {
         self.turnOn()
-        vTaskDelay(onMillis / (1000 / UInt32(configTICK_RATE_HZ)))
+        delay(onMillis)
         self.turnOff()
-        vTaskDelay(offMillis / (1000 / UInt32(configTICK_RATE_HZ)))
+        delay(offMillis)
     }
 }
 
@@ -43,5 +43,4 @@ extension DigitalIndicator {
         self.active = !activeLow
         self.expectedState = false
     }
-    
 }
