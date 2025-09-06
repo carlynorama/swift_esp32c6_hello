@@ -36,20 +36,11 @@ struct OutputPin:GPIOPin {
 
 //esp32C6 init
 extension OutputPin {
-    init(pinNumber:UInt32, activeLow:Bool = true, useInternalHardware:Bool = true) {
+    init(pinNumber:UInt32, activeLow:Bool = true) {
         //validate is GPIO output pin.
         let ledPin = gpio_num_t(Int32(pinNumber))
         self.pinNumber = pinNumber
 
-        //validate pin has hardware 
-        if activeLow && useInternalHardware {
-            //use gpio_pull_mode_t
-            gpio_set_pull_mode(ledPin, GPIO_PULLUP_ONLY)
-        } else if !activeLow && useInternalHardware {
-            gpio_set_pull_mode(ledPin, GPIO_PULLDOWN_ONLY)
-        } else {
-            //could set with GPIO_FLOATING, but for now want to leave it as default
-        }
         guard gpio_reset_pin(ledPin) == ESP_OK else {
             fatalError("cannot reset output pin \(pinNumber)")
         }

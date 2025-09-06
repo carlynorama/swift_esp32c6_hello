@@ -38,8 +38,8 @@ struct DigitalIndicator {
 }
 
 extension DigitalIndicator {
-    init?(_ pinNum: UInt32, activeLow:Bool = true, useInternalHardware:Bool = true) {
-        self.pin = OutputPin(pinNumber: pinNum, activeLow:activeLow, useInternalHardware:useInternalHardware)
+    init?(_ pinNum: UInt32, activeLow:Bool = true) {
+        self.pin = OutputPin(pinNumber: pinNum, activeLow:activeLow)
         self.active = !activeLow
         self.expectedState = false
     }
