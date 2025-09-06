@@ -65,7 +65,7 @@ target_sources(${COMPONENT_LIB}
     GPIOPin.swift
     DigitalIndicator.swift
     DigitalInput.swift
-    
+    Delay.swift
 )
 
 add_custom_command(
