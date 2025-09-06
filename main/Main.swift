@@ -2,6 +2,8 @@
 func main() {
   print("Hello from Swift on ESP32-C6!")
 
+  print(test_cmp_return_twelve())
+
   guard var led = DigitalIndicator(15) else {
     fatalError("Difficulty setting up pin.")
   }
@@ -9,6 +11,7 @@ func main() {
   guard let button = DigitalInput(9) else {
     fatalError("Difficulty setting up button.")
   }
+
 
   while true {
     if button.isActive {

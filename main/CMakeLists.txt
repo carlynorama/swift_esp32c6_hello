@@ -1,6 +1,7 @@
 # Register the app as an IDF component
 idf_component_register(
     SRCS /dev/null # We don't have any C++ sources
+    # PRIV_REQUIRES test_cmp
     PRIV_INCLUDE_DIRS "."
 )
 
@@ -65,7 +66,8 @@ target_sources(${COMPONENT_LIB}
     GPIOPin.swift
     DigitalIndicator.swift
     DigitalInput.swift
-    Delay.swift
+    Delay.swift     
+    ErrorHandler.swift
 )
 
 add_custom_command(
