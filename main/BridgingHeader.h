@@ -16,7 +16,4 @@
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 
-#include "test_cmp.h"
-
-// WiFi
-#include "esp_wifi.h"
+#include "wifi_bridge.h"
