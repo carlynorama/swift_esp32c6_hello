@@ -68,6 +68,7 @@ target_sources(${COMPONENT_LIB}
     DigitalInput.swift
     Delay.swift     
     ErrorHandler.swift
+    WiFi.swift
 )
 
 add_custom_command(

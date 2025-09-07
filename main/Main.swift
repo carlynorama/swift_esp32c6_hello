@@ -12,6 +12,8 @@ func main() {
     fatalError("Difficulty setting up button.")
   }
 
+  let wifi = WiFiStation()
+  wifi.connect()
 
   while true {
     if button.isActive {
