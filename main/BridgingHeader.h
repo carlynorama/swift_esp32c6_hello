@@ -16,4 +16,6 @@
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 
-#include "wifi_bridge.h"
+// #include "wifi_bridge.h"
+
+#include "protocols_examples_common.h"
