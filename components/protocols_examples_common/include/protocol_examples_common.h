@@ -86,6 +86,9 @@ extern "C" {
 #define get_example_netif() get_example_netif_from_desc(EXAMPLE_NETIF_DESC_PPP)
 #endif
 
+
+void my_init_tasks(void);
+
 /**
  * @brief Configure Wi-Fi or Ethernet, connect, wait for IP
  *

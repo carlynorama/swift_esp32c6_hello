@@ -16,6 +16,16 @@
 #include "protocol_examples_common.h"
 #include "example_common_private.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
+#include "esp_event.h"
+
+
+void my_init_tasks(void)
+ {
+    ESP_ERROR_CHECK( nvs_flash_init() );
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+ }
 
 #if CONFIG_EXAMPLE_CONNECT_WIFI
 

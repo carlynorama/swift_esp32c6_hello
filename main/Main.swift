@@ -2,7 +2,7 @@
 func main() {
   print("Hello from Swift on ESP32-C6!")
 
-  print(wifi_bridge_return_twelve())
+  //print(wifi_bridge_return_twelve())
 
   guard var led = DigitalIndicator(15) else {
     fatalError("Difficulty setting up pin.")
