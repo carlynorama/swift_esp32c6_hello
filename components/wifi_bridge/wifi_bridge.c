@@ -164,7 +164,7 @@ void event_handler(void* arg, esp_event_base_t event_base,
 }
 
 
-void wifi_bridge_init_sta(void)
+void wifi_bridge_connect_and_listen(void)
 {
     s_wifi_event_group = xEventGroupCreate();
 
@@ -188,7 +188,7 @@ void wifi_bridge_init_sta(void)
 
     ESP_ERROR_CHECK(wifi_bridge_wifi_set_start_config());
 
-    printf("wifi_init_sta finished.\n");
+    printf("Station initialized. Waiting for confirmation\n");
 
     /* Waiting until either the connection is established (WIFI_CONNECTED_BIT) or connection failed for the maximum
      * number of re-tries (WIFI_FAIL_BIT). The bits are set by event_handler() (see above) */
@@ -198,7 +198,7 @@ void wifi_bridge_init_sta(void)
             pdFALSE,
             portMAX_DELAY);
 
-    printf("\nevent bits finished.\n");
+    printf("\nEvent bits created.\n");
 
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
@@ -212,7 +212,7 @@ void wifi_bridge_init_sta(void)
         printf("UNEXPECTED EVENT");
     }
 
-    printf("\nDid I get here?.\n");
+    printf("\nInit and confirmation complete.\n");
 }
 
 

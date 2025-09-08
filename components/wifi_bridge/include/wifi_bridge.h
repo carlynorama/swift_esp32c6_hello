@@ -52,7 +52,7 @@
 #endif
 
 
-void wifi_bridge_init_sta(void);
+void wifi_bridge_connect_and_listen(void);
 
 
 int wifi_bridge_return_twelve(void);

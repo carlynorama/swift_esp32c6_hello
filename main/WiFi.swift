@@ -4,18 +4,10 @@ final class WiFiStation {
     // var currentPassword:String?
 
 init() {
-
     checkWithFatal(wifi_bridge_initialize_nvs())
-    // checkWithFatal(wifi_bridge_initialize_netif());
-
-    wifi_bridge_init_sta()
-    /* This helper function configures Wi-Fi or Ethernet, as selected in menuconfig.
-     * Read "Establishing Wi-Fi or Ethernet Connection" section in
-     * examples/protocols/README.md for more information about this function.
-     */
-    // my_init_tasks();
-    
 }
+
+
 
 // func connect(ssid:String, password:String) {
 //     currentSSID = ssid
@@ -26,14 +18,15 @@ init() {
 // }
 
 func connect() {
-    // checkWithFatal(example_connect());
+    wifi_bridge_connect_and_listen()
+//     // checkWithFatal(example_connect());
 
-    // currentSSID = ssid
-    // currentPassword = password
-    //https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/network/esp_wifi.html#_CPPv417wifi_sta_config_t
+//     // currentSSID = ssid
+//     // currentPassword = password
+//     //https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/network/esp_wifi.html#_CPPv417wifi_sta_config_t
     
-    //checkWithFatal(wifi_bridge_wifi_set_start_config(ssid.utf8CString, password.utf8CString))
-    //checkWithFatal(wifi_bridge_wifi_set_start_config())
+//     //checkWithFatal(wifi_bridge_wifi_set_start_config(ssid.utf8CString, password.utf8CString))
+//     //checkWithFatal(wifi_bridge_wifi_set_start_config())
 }
 
 
