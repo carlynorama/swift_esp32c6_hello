@@ -6,7 +6,7 @@ func main() {
     fatalError("Difficulty setting up pin.")
   }
 
-  guard let button = DigitalInput(9) else {
+  guard let button = MomentaryInput(9) else {
     fatalError("Difficulty setting up button.")
   }
 
@@ -19,6 +19,7 @@ func main() {
 
   let wifi = WiFiStation()
   wifi.connect(ssid: "somenetwork", password: "somepassword")
+  
 
     //Waiting for wifi to connect...
   delay(2000);
