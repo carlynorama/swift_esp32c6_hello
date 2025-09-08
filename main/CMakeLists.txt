@@ -69,6 +69,7 @@ target_sources(${COMPONENT_LIB}
     Delay.swift     
     ErrorHandler.swift
     WiFi.swift
+    HTTP.swift
 )
 
 add_custom_command(
