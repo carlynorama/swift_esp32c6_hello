@@ -24,7 +24,7 @@ func main() {
     //Waiting for wifi to connect...
   delay(2000);
   let client = HTTPClient()
-  client.getAndPrint(from: "todbot.com", route:"/tst/randcolor.php")
+  client.getAndPrint(from: String, route: String)
 
   while true {
     if button.isActive {

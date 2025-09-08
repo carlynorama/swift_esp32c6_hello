@@ -51,10 +51,10 @@ esp_err_t wifi_bridge_wifi_set_config_and_connect(const char *wifi_ssid, const c
     //      }, 
     //  }; 
 
-    printf("ssid: %s, pass: %s\n", wifi_ssid, wifi_pass);
-
     wifi_config_t wifi_config = {0}; // empty config
-    // //count is the maximum 
+
+    //count is the maximum, the the absolute. 
+    printf("connecting to %s\n", wifi_ssid);
     strncpy((char *)wifi_config.sta.ssid, wifi_ssid, sizeof(wifi_config.sta.ssid));
     strncpy((char *)wifi_config.sta.password, wifi_pass, sizeof(wifi_config.sta.password));
 
