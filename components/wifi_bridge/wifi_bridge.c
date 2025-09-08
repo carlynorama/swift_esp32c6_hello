@@ -35,14 +35,27 @@ esp_err_t wifi_bridge_wifi_init_default_config(void) {
     return esp_wifi_init(&cfg);
 }
 
+#define TMP_SSID "example"
+#define TMP_PASS "example"
+
+//strings don't actually work
 esp_err_t wifi_bridge_wifi_set_config_and_connect(const char *wifi_ssid, const char *wifi_pass) {
     //uint8_t ssid[32]
     //uint8_t password[64]
 
-    wifi_config_t wifi_config = {0}; // empty config
+
+
+    wifi_config_t wifi_config = {
+         .sta = { 
+             .ssid = TMP_SSID, 
+             .password = TMP_PASS, 
+         }, 
+     }; 
+
+    //wifi_config_t wifi_config = {0}; // empty config
     //count is the maximum, the the absolute. 
-    strncpy((char *)wifi_config.sta.ssid, wifi_ssid, sizeof(wifi_config.sta.ssid));
-    strncpy((char *)wifi_config.sta.password, wifi_pass, sizeof(wifi_config.sta.password));
+    // strncpy((char *)wifi_config.sta.ssid, wifi_ssid, sizeof(wifi_config.sta.ssid));
+    // strncpy((char *)wifi_config.sta.password, wifi_pass, sizeof(wifi_config.sta.password));
 
     esp_err_t ret = esp_wifi_set_mode(WIFI_MODE_STA);
     if (ret == ESP_OK) {
