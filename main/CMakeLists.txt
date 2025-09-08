@@ -64,7 +64,7 @@ target_sources(${COMPONENT_LIB}
     Bool_Int.swift
     GPIOPin.swift
     DigitalIndicator.swift
-    DigitalInput.swift
+    MomentaryInput.swift
     Delay.swift
 )
 
