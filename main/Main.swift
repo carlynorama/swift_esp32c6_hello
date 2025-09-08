@@ -19,6 +19,7 @@ func main() {
 
   let wifi = WiFiStation()
   wifi.connect(ssid: "somenetwork", password: "somepassword")
+  
 
     //Waiting for wifi to connect...
   delay(2000);
