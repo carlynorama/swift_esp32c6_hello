@@ -19,5 +19,6 @@
 
 
 #include "wifi_bridge.h"
+#include "http_bridge.h"
 
 //#include "protocol_examples_common.h"

@@ -8,6 +8,8 @@
 
 int wifi_bridge_return_twelve(void);
 
+void test_string_passing(const char *bridge_first, const char *bridge_last);
+
 esp_err_t wifi_bridge_initialize_nvs(void);
 
 esp_err_t wifi_bridge_initialize_netif(void);

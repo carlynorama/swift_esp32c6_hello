@@ -1,5 +1,5 @@
+struct MomentaryInput {
 
-struct DigitalInput {
     let pin:InputPin
     let activeLevel: GPIOLevel
 
@@ -8,7 +8,7 @@ struct DigitalInput {
     }
 }
 
-extension DigitalInput {
+extension MomentaryInput {
     init?(_ pinNum: UInt32, activeLow:Bool = true, useInternalHardware:Bool = true) {
         self.pin = InputPin(pinNumber: pinNum, activeLow:activeLow, useInternalHardware: useInternalHardware)
         self.activeLevel = GPIOLevel(!activeLow)

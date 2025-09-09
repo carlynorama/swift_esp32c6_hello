@@ -11,10 +11,18 @@ final class WiFiStation {
     func connect(ssid: String, password: String) {
         //     currentSSID = ssid
         //     currentPassword = password
-        var local_ssid = ssid.utf8CString
-        var local_pass = password.utf8CString
+        let local_ssid = ssid.utf8CString
+        let local_pass = password.utf8CString
 
-        checkWithFatal(wifi_bridge_wifi_set_config_and_connect(&local_ssid, &local_pass))
+        //TODO: test with span on beta?
+        local_pass.withContiguousStorageIfAvailable { pass_buffer in
+            local_ssid.withContiguousStorageIfAvailable { ssid_buffer in
+                checkWithFatal(
+                    wifi_bridge_wifi_set_config_and_connect(
+                        ssid_buffer.baseAddress, pass_buffer.baseAddress))
+            }
+        }
+        // checkWithFatal(wifi_bridge_wifi_set_config_and_connect(&local_ssid, &local_pass))
     }
 
 }
