@@ -1,5 +1,5 @@
-
 struct MomentaryInput {
+
     let pin:InputPin
     let activeLevel: GPIOLevel
 
