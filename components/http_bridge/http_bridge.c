@@ -1,9 +1,6 @@
 
 #include "http_bridge.h"
 
-#define HOST ""
-#define ROUTE ""
-
 int http_bridge_bridge_return_twelve(void)
 {
     return 12;
@@ -19,10 +16,10 @@ int http_bridge_get(const char *host, const char *path) {
 
     printf("B");
     char port_str[] = "80";
-    int err = getaddrinfo(HOST, port_str, &hints, &res);
+    int err = getaddrinfo(host, port_str, &hints, &res);
     //int err = getaddrinfo(host, port_str, &hints, &res);
     if (err != 0 || res == NULL) {
-        printf("DNS lookup failed for %s", HOST);
+        printf("DNS lookup failed for %s", host);
         return 1;
     }
 
