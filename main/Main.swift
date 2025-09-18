@@ -25,6 +25,7 @@ func main() {
   delay(2000);
   let client = HTTPClient()
   client.getAndPrint(from: "example.com", route: "/")
+  client.test()
 
   while true {
     if button.isActive {

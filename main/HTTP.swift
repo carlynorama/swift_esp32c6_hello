@@ -1,4 +1,11 @@
+// import HTTPTypes
+
 final class HTTPClient {
+
+    // func test() {
+    //     let request = HTTPRequest(method: .get, scheme: "https", authority: "www.example.com", path: "/")
+    //     print(request.scheme)
+    // }
 
     func getAndPrint(from host: String, route: String) {
         print("Getting...")

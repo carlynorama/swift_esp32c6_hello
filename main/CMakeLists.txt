@@ -58,6 +58,11 @@ set(CMAKE_Swift_COMPILATION_MODE_DEFAULT wholemodule)
 set(CMAKE_Swift_COMPILATION_MODE wholemodule)
 enable_language(Swift)
 
+
+add_subdirectory(HTTPTypes)
+target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPTypes)
+target_include_directories(${COMPONENT_LIB} PUBLIC HTTPTypes)
+
 # List of Swift source files to build.
 target_sources(${COMPONENT_LIB}
     PRIVATE
