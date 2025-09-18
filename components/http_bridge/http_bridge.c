@@ -1,4 +1,3 @@
-
 #include "http_bridge.h"
 
 int http_bridge_bridge_return_twelve(void)
@@ -7,6 +6,7 @@ int http_bridge_bridge_return_twelve(void)
 }
 
 int http_bridge_get(const char *host, const char *path) {
+    printf("A");
     struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
@@ -56,7 +56,7 @@ int http_bridge_get(const char *host, const char *path) {
         close(s);
         return 4;
     }
-
+    printf("G");
     char recv_buf[512];
     int r;
     while ((r = read(s, recv_buf, sizeof(recv_buf) - 1)) > 0) {
@@ -64,5 +64,5 @@ int http_bridge_get(const char *host, const char *path) {
         printf("%s", recv_buf);
     }
     close(s);
-    return 100;
+    return 0;
 }
