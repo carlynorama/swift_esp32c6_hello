@@ -1,5 +1,3 @@
-
-
 ## Removed 
 
 - conformances to Codable
@@ -9,7 +7,7 @@
 - no keypaths
 - no 'any Error'
 
-Likely caused by dictionary with string as key?
+Likely caused by dictionary with string as key? No, there is more...
 https://github.com/swiftlang/swift/issues/75678
 https://forums.swift.org/t/what-is-swift-stdlib-getnormdata/73989/3
 https://docs.swift.org/embedded/documentation/embedded/strings
@@ -20,6 +18,18 @@ undefined reference to `_swift_stdlib_nfd_decompositions'
 
 ld ... -o binary output.o $(dirname `which swiftc`)/../lib/swift/embedded/armv6m-none-none-eabi/libswiftUnicodeDataTables.a
 
+- doesn't work with swiftly
+- get the one for my target architecture
+
+cp /System/Volumes/Data/Users/$USER/Library/Developer/Toolchains/swift-6.2-RELEASE.xctoolchain/usr/lib/swift/embedded/riscv32-none-none-eabi/libswiftUnicodeDataTables.a libswiftUnicodeDataTables.a
+
+
+TODO: Try the more recent espressif tools? 
+
+
+
+## MISC ERRORS
+
 - error: cannot find 'Mutex' in scope
 
 - /HTTPFields.swift:182:51: error: cannot convert value of type 'String' to expected argument type 'String.Element' (aka 'Character')
@@ -27,7 +37,7 @@ ld ... -o binary output.o $(dirname `which swiftc`)/../lib/swift/embedded/armv6m
 
 Swift.Array.description:2:12: note: 'description' has been explicitly marked unavailable here
 1 | generic struct Array {
-2 | public var description: String { get }}
+2 | public var description: ISOLatin1String { get }}
   |            `- note: 'description' has been explicitly marked unavailable here
 
 194 | extension LockStorage: @unchecked Sendable {}
@@ -65,8 +75,6 @@ Swift.Array.description:2:12: note: 'description' has been explicitly marked una
  51 |             switch field.name {
 
 
-
-
 /Users/$USER/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/../lib/gcc/riscv32-esp-elf/14.2.0/../../../../riscv32-esp-elf/bin/ld: esp-idf/main/libmain.a(Main.swift.obj): in function `$es30_stringCompareFastUTF8Abnormal33_835F230159459CFFE280B5F8E69D8077LL__9expectingSbSRys5UInt8VG_AFs23_StringComparisonResultOtF':
 Main.swift.obj:(.text.$es30_stringCompareFastUTF8Abnormal33_835F230159459CFFE280B5F8E69D8077LL__9expectingSbSRys5UInt8VG_AFs23_StringComparisonResultOtF+0x8a): undefined reference to `_swift_stdlib_getNormData'
 /Users/$USER/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/../lib/gcc/riscv32-esp-elf/14.2.0/../../../../riscv32-esp-elf/bin/ld: Main.swift.obj:(.text.$es30_stringCompareFastUTF8Abnormal33_835F230159459CFFE280B5F8E69D8077LL__9expectingSbSRys5UInt8VG_AFs23_StringComparisonResultOtF+0x9c): undefined reference to `_swift_stdlib_getNormData'
@@ -94,4 +102,4 @@ Main.swift.obj:(.text.$es14_nfcQuickCheck_7prevCCCSbSRys5UInt8VG_ADztF+0x6e): un
 /Users/$USER/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/../lib/gcc/riscv32-esp-elf/14.2.0/../../../../riscv32-esp-elf/bin/ld: final link failed: bad value
 collect2: error: ld returned 1 exit status
 ninja: build stopped: subcommand failed.
-ninja failed with exit code 1, output of the command is in the /Users/$USER/Developer/esp/swift_esp32c6_hello/build/log/idf_py_stderr_output_4708 and /Users/$USER/Developer/esp/swift_esp32c6_hello/build/log/idf_py_stdout_output_4708
+

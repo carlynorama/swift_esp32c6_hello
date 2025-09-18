@@ -58,14 +58,22 @@ set(CMAKE_Swift_COMPILATION_MODE_DEFAULT wholemodule)
 set(CMAKE_Swift_COMPILATION_MODE wholemodule)
 enable_language(Swift)
 
-
+## For seeing what will fail in from unchanged folder. 
 # add_subdirectory(HTTPTypes)
 # target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPTypes)
 # target_include_directories(${COMPONENT_LIB} PUBLIC HTTPTypes)
 
-# add_subdirectory(HTTPSimpleTypes)
-# target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPSimpleTypes)
-# target_include_directories(${COMPONENT_LIB} PUBLIC HTTPSimpleTypes)
+
+# execute_process(COMMAND which swiftc OUTPUT_VARIABLE WHICH_SWIFT)
+# execute_process(COMMAND  dirname ${WHICH_SWIFT} OUTPUT_VARIABLE DIR_SWIFT)
+# message(" -------------------------- ${DIR_SWIFT} -------------------------")
+
+# Swiftly install doesn't map the toolchain location correctly. 
+
+# Note this is from 6.2 Release
+# /System/Volumes/Data/Users/$USER/Library/Developer/Toolchains/swift-6.2-RELEASE.xctoolchain/usr/lib/swift/embedded/
+target_link_libraries(${COMPONENT_LIB} ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a)
+
 
 # List of Swift source files to build.
 target_sources(${COMPONENT_LIB}
