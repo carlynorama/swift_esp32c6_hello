@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct HTTPParsedFields {
+public struct HTTPParsedFields {
     private var method: ISOLatin1String?
     private var scheme: ISOLatin1String?
     private var authority: ISOLatin1String?
@@ -21,7 +21,7 @@ struct HTTPParsedFields {
     private var status: ISOLatin1String?
     private var fields: HTTPFields = .init()
 
-    enum ParsingError: Error {
+    public enum ParsingError: Error {
         case invalidName
         case invalidPseudoName
         case invalidPseudoValue
@@ -43,7 +43,7 @@ struct HTTPParsedFields {
         case multipleLocation
     }
 
-    mutating func add(field: HTTPField) throws {
+    mutating func add(field: HTTPField) throws(ParsingError) {
         if field.name.isPseudo {
             if !self.fields.isEmpty {
                 throw ParsingError.pseudoNotFirst
@@ -87,7 +87,7 @@ struct HTTPParsedFields {
         }
     }
 
-    private func validateFields() throws {
+    private func validateFields() throws(ParsingError) {
         guard self.fields[values: .contentLength].allElementsSame else {
             throw ParsingError.multipleContentLength
         }
@@ -100,7 +100,7 @@ struct HTTPParsedFields {
     }
 
     var request: HTTPRequest {
-        get throws {
+        get throws(ParsingError) {
             guard let method = self.method else {
                 throw ParsingError.requestWithoutMethod
             }
@@ -129,7 +129,7 @@ struct HTTPParsedFields {
     }
 
     var response: HTTPResponse {
-        get throws {
+        get throws(ParsingError) {
             guard let statusString = self.status?._storage else {
                 throw ParsingError.responseWithoutStatus
             }
@@ -147,7 +147,7 @@ struct HTTPParsedFields {
     }
 
     var trailerFields: HTTPFields {
-        get throws {
+        get throws(ParsingError) {
             if self.method != nil || self.scheme != nil || self.authority != nil || self.path != nil
                 || self.extendedConnectProtocol != nil || self.status != nil
             {
@@ -196,7 +196,7 @@ extension HTTPRequest {
     ///
     /// - Parameter fields: The array of parsed `HTTPField` produced by HPACK or QPACK decoders
     ///                     used in modern HTTP versions.
-    public init(parsed fields: [HTTPField]) throws {
+    public init(parsed fields: [HTTPField]) throws(HTTPParsedFields.ParsingError) {
         var parsedFields = HTTPParsedFields()
         for field in fields {
             try parsedFields.add(field: field)
@@ -211,7 +211,7 @@ extension HTTPResponse {
     ///
     /// - Parameter fields: The array of parsed `HTTPField` produced by HPACK or QPACK decoders
     ///                     used in modern HTTP versions.
-    public init(parsed fields: [HTTPField]) throws {
+    public init(parsed fields: [HTTPField]) throws(HTTPParsedFields.ParsingError) {
         var parsedFields = HTTPParsedFields()
         for field in fields {
             try parsedFields.add(field: field)
@@ -226,7 +226,7 @@ extension HTTPFields {
     ///
     /// - Parameter fields: The array of parsed `HTTPField` produced by HPACK or QPACK decoders
     ///                     used in modern HTTP versions.
-    public init(parsedTrailerFields fields: [HTTPField]) throws {
+    public init(parsedTrailerFields fields: [HTTPField]) throws(HTTPParsedFields.ParsingError) {
         var parsedFields = HTTPParsedFields()
         for field in fields {
             try parsedFields.add(field: field)

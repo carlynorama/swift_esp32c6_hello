@@ -25,19 +25,20 @@ import Synchronization
 /// `HTTPFields` adheres to modern HTTP semantics. In particular, the "Cookie" request header field
 /// is split into separate header fields by default.
 public struct HTTPFields: Sendable, Hashable {
-    private class _Storage: @unchecked Sendable, Hashable {
+    private typealias _Storage = _StorageWithoutLocks
+    private class _StorageWithoutLocks: @unchecked Sendable, Hashable {
         var fields: [(field: HTTPField, next: UInt16)] = []
         var index: [String: (first: UInt16, last: UInt16)]? = [:]
 
         required init() {
         }
-
-        func withLock<Result>(_ body: () throws -> Result) rethrows -> Result {
-            fatalError()
-        }
+    
+        // func withLock<Result>(_ body: () throws -> Result) rethrows -> Result {
+        //     fatalError()
+        // }
 
         var ensureIndex: [String: (first: UInt16, last: UInt16)] {
-            self.withLock {
+            //self.withLock {
                 if let index = self.index {
                     return index
                 }
@@ -52,15 +53,15 @@ public struct HTTPFields: Sendable, Hashable {
                 }
                 self.index = newIndex
                 return newIndex
-            }
+            //}
         }
 
         func copy() -> Self {
             let newStorage = Self()
             newStorage.fields = self.fields
-            self.withLock {
+            //self.withLock {
                 newStorage.index = self.index
-            }
+            //}
             return newStorage
         }
 
@@ -109,39 +110,40 @@ public struct HTTPFields: Sendable, Hashable {
         }
     }
 
-    #if compiler(>=6.0)
-    @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
-    private final class _StorageWithMutex: _Storage, @unchecked Sendable {
-        let mutex = Mutex<Void>(())
+    // #if compiler(>=6.0)
+    // @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+    // private final class _StorageWithMutex: _Storage, @unchecked Sendable {
+    //     let mutex = Mutex<Void>(())
 
-        override func withLock<Result>(_ body: () throws -> Result) rethrows -> Result {
-            try self.mutex.withLock { _ in
-                try body()
-            }
-        }
-    }
-    #endif  // compiler(>=6.0)
+    //     override func withLock<Result>(_ body: () throws -> Result) rethrows -> Result {
+    //         try self.mutex.withLock { _ in
+    //             try body()
+    //         }
+    //     }
+    // }
+    // #endif  // compiler(>=6.0)
 
-    private final class _StorageWithNIOLock: _Storage, @unchecked Sendable {
-        let lock = LockStorage.create(value: ())
+    // private final class _StorageWithNIOLock: _Storage, @unchecked Sendable {
+    //     let lock = LockStorage.create(value: ())
 
-        override func withLock<Result>(_ body: () throws -> Result) rethrows -> Result {
-            try self.lock.withLockedValue { _ in
-                try body()
-            }
-        }
-    }
+    //     override func withLock<Result>(_ body: () throws -> Result) rethrows -> Result {
+    //         try self.lock.withLockedValue { _ in
+    //             try body()
+    //         }
+    //     }
+    // }
 
     private var _storage = {
-        #if compiler(>=6.0)
-        if #available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *) {
-            _StorageWithMutex()
-        } else {
-            _StorageWithNIOLock()
-        }
-        #else  // compiler(>=6.0)
-        _StorageWithNIOLock()
-        #endif  // compiler(>=6.0)
+        _StorageWithoutLocks()
+        // #if compiler(>=6.0)
+        // if #available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *) {
+        //     _StorageWithMutex()
+        // } else {
+        //     _StorageWithNIOLock()
+        // }
+        // #else  // compiler(>=6.0)
+        // _StorageWithNIOLock()
+        // #endif  // compiler(>=6.0)
     }()
 
     /// Create an empty list of HTTP fields
@@ -168,7 +170,7 @@ public struct HTTPFields: Sendable, Hashable {
             let fields = self.fields(for: name)
             if fields.first(where: { _ in true }) != nil {
                 let separator = name == .cookie ? "; " : ", "
-                return fields.lazy.map(\.value).joined(separator: separator)
+                return fields.lazy.map({$0.value}).joined(separator: separator)
             } else {
                 return nil
             }
@@ -197,7 +199,7 @@ public struct HTTPFields: Sendable, Hashable {
     /// Access the field values by name as an array of strings. The order of fields is preserved.
     public subscript(values name: HTTPField.Name) -> [String] {
         get {
-            self.fields(for: name).map(\.value)
+            self.fields(for: name).map({$0.value})
         }
         set {
             self.setFields(newValue.lazy.map { HTTPField(name: name, value: $0) }, for: name)
