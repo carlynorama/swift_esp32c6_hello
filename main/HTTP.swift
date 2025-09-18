@@ -1,6 +1,13 @@
 // import HTTPTypes
 
+// import HTTPSimpleTypes
+
 final class HTTPClient {
+
+    func test() {
+        //let type = HTTPHello()
+        //print(type.helloInt)
+    }
 
     // func test() {
     //     let request = HTTPRequest(method: .get, scheme: "https", authority: "www.example.com", path: "/")

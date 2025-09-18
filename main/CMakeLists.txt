@@ -59,9 +59,13 @@ set(CMAKE_Swift_COMPILATION_MODE wholemodule)
 enable_language(Swift)
 
 
-add_subdirectory(HTTPTypes)
-target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPTypes)
-target_include_directories(${COMPONENT_LIB} PUBLIC HTTPTypes)
+# add_subdirectory(HTTPTypes)
+# target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPTypes)
+# target_include_directories(${COMPONENT_LIB} PUBLIC HTTPTypes)
+
+# add_subdirectory(HTTPSimpleTypes)
+# target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPSimpleTypes)
+# target_include_directories(${COMPONENT_LIB} PUBLIC HTTPSimpleTypes)
 
 # List of Swift source files to build.
 target_sources(${COMPONENT_LIB}
@@ -75,6 +79,14 @@ target_sources(${COMPONENT_LIB}
     ErrorHandler.swift
     WiFi.swift
     HTTP.swift
+    HTTPRevisedTypes/HTTPField.swift
+    HTTPRevisedTypes/HTTPFieldName.swift
+    HTTPRevisedTypes/HTTPFields.swift
+    HTTPRevisedTypes/HTTPParsedFields.swift
+    HTTPRevisedTypes/HTTPRequest.swift
+    HTTPRevisedTypes/HTTPResponse.swift
+    HTTPRevisedTypes/ISOLatin1String.swift
+    HTTPRevisedTypes/NIOLock.swift
 )
 
 add_custom_command(
