@@ -72,7 +72,22 @@ enable_language(Swift)
 
 # Note this is from 6.2 Release
 # /System/Volumes/Data/Users/$USER/Library/Developer/Toolchains/swift-6.2-RELEASE.xctoolchain/usr/lib/swift/embedded/
-target_link_libraries(${COMPONENT_LIB} ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a)
+# target_link_libraries(${COMPONENT_LIB} ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a)
+
+# get_filename_component(compiler_bin_dir ${CMAKE_Swift_COMPILER} DIRECTORY)
+# target_link_directories(${COMPONENT_LIB} PUBLIC "${compiler_bin_dir}/../lib/swift/embedded/riscv32-none-none-eabi")
+# target_link_directories(${COMPONENT_LIB} PUBLIC "${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a")
+# target_link_libraries(${COMPONENT_LIB} PUBLIC
+#     -Wl,--whole-archive
+#     swiftUnicodeDataTables
+#     -Wl,--no-whole-archive
+#     )
+
+target_link_libraries(${COMPONENT_LIB} PUBLIC
+    -Wl,--whole-archive
+    ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a
+    -Wl,--no-whole-archive
+    )
 
 
 # List of Swift source files to build.
