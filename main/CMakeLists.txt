@@ -58,42 +58,6 @@ set(CMAKE_Swift_COMPILATION_MODE_DEFAULT wholemodule)
 set(CMAKE_Swift_COMPILATION_MODE wholemodule)
 enable_language(Swift)
 
-## For seeing what will fail in from unchanged folder. 
-# add_subdirectory(HTTPTypes)
-# target_link_libraries(${COMPONENT_LIB} PUBLIC HTTPTypes)
-# target_include_directories(${COMPONENT_LIB} PUBLIC HTTPTypes)
-
-
-# execute_process(COMMAND which swiftc OUTPUT_VARIABLE WHICH_SWIFT)
-# execute_process(COMMAND  realpath /Users/carlynorama/.swiftly OUTPUT_VARIABLE REAL_SWIFT)
-# execute_process(COMMAND  dirname ${REAL_SWIFT} OUTPUT_VARIABLE DIR_SWIFT)
-# message(" -------------- ${WHICH_SWIFT} ------ ${REAL_SWIFT} ------ ${DIR_SWIFT} -------------------------")
-
-# Swiftly install doesn't map the toolchain location correctly. 
-
-# Note this is from 6.2 Release
-# /System/Volumes/Data/Users/$USER/Library/Developer/Toolchains/swift-6.2-RELEASE.xctoolchain/usr/lib/swift/embedded/
-# target_link_libraries(${COMPONENT_LIB} ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a)
-
-# get_filename_component(compiler_bin_dir ${CMAKE_Swift_COMPILER} DIRECTORY)
-# target_link_directories(${COMPONENT_LIB} PUBLIC "${compiler_bin_dir}/../lib/swift/embedded/riscv32-none-none-eabi")
-# target_link_directories(${COMPONENT_LIB} PUBLIC "${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a")
-# target_link_libraries(${COMPONENT_LIB} PUBLIC
-#     -Wl,--whole-archive
-#     swiftUnicodeDataTables
-#     -Wl,--no-whole-archive
-#     )
-
-# get_filename_component(compiler_bin_dir ${CMAKE_Swift_COMPILER} DIRECTORY)
-# message(" -------------------------- ${compiler_bin_dir} -------------------------")
-
-#### ----------------------- THIS WORKED
-# target_link_libraries(${COMPONENT_LIB} PUBLIC
-#     -Wl,--whole-archive
-#     ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a
-#     -Wl,--no-whole-archive
-#     )
-#### ----------------------- END WORKED
 
 set(ESP32C6_COMPILER_TARGET "riscv32-none-none-eabi")
 
@@ -106,24 +70,14 @@ ELSE()
   cmake_path(SET additional_lib_path NORMALIZE "${compiler_bin_dir}/../lib/swift/embedded/${ESP32C6_COMPILER_TARGET}")
 ENDIF()
 
+# message(" ---::: ${additional_lib_path} :::---------- ")
+
 target_link_directories(${COMPONENT_LIB} PUBLIC "${additional_lib_path}")
 target_link_libraries(${COMPONENT_LIB}
     -Wl,--whole-archive
     swiftUnicodeDataTables
     -Wl,--no-whole-archive
     )
-
-# message(" ---::: ${additional_lib_path} :::---------- ")
-
-# # target_link_directories(${COMPONENT_LIB} PRIVATE "${additional_lib_path}")
-# # target_link_libraries(${COMPONENT_LIB}
-# #     -Wl,--whole-archive
-# #     swiftUnicodeDataTables
-# #     -Wl,--no-whole-archive
-# #     )
-
-
-
 
 
 # List of Swift source files to build.
