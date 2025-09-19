@@ -65,8 +65,9 @@ enable_language(Swift)
 
 
 # execute_process(COMMAND which swiftc OUTPUT_VARIABLE WHICH_SWIFT)
-# execute_process(COMMAND  dirname ${WHICH_SWIFT} OUTPUT_VARIABLE DIR_SWIFT)
-# message(" -------------------------- ${DIR_SWIFT} -------------------------")
+# execute_process(COMMAND  realpath /Users/carlynorama/.swiftly OUTPUT_VARIABLE REAL_SWIFT)
+# execute_process(COMMAND  dirname ${REAL_SWIFT} OUTPUT_VARIABLE DIR_SWIFT)
+# message(" -------------- ${WHICH_SWIFT} ------ ${REAL_SWIFT} ------ ${DIR_SWIFT} -------------------------")
 
 # Swiftly install doesn't map the toolchain location correctly. 
 
@@ -83,11 +84,46 @@ enable_language(Swift)
 #     -Wl,--no-whole-archive
 #     )
 
-target_link_libraries(${COMPONENT_LIB} PUBLIC
+# get_filename_component(compiler_bin_dir ${CMAKE_Swift_COMPILER} DIRECTORY)
+# message(" -------------------------- ${compiler_bin_dir} -------------------------")
+
+#### ----------------------- THIS WORKED
+# target_link_libraries(${COMPONENT_LIB} PUBLIC
+#     -Wl,--whole-archive
+#     ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a
+#     -Wl,--no-whole-archive
+#     )
+#### ----------------------- END WORKED
+
+set(ESP32C6_COMPILER_TARGET "riscv32-none-none-eabi")
+
+find_program(SWIFTLY "swiftly")
+IF(SWIFTLY)
+  execute_process(COMMAND swiftly use --print-location OUTPUT_VARIABLE toolchain_path OUTPUT_STRIP_TRAILING_WHITESPACE)
+  cmake_path(SET additional_lib_path NORMALIZE "${toolchain_path}/usr/lib/swift/embedded/${ESP32C6_COMPILER_TARGET}")
+ELSE()
+  get_filename_component(compiler_bin_dir ${CMAKE_Swift_COMPILER} DIRECTORY)
+  cmake_path(SET additional_lib_path NORMALIZE "${compiler_bin_dir}/../lib/swift/embedded/${ESP32C6_COMPILER_TARGET}")
+ENDIF()
+
+target_link_directories(${COMPONENT_LIB} PUBLIC "${additional_lib_path}")
+target_link_libraries(${COMPONENT_LIB}
     -Wl,--whole-archive
-    ${CMAKE_SOURCE_DIR}/helpers/riscv32-none-none-eabi/libswiftUnicodeDataTables.a
+    swiftUnicodeDataTables
     -Wl,--no-whole-archive
     )
+
+# message(" ---::: ${additional_lib_path} :::---------- ")
+
+# # target_link_directories(${COMPONENT_LIB} PRIVATE "${additional_lib_path}")
+# # target_link_libraries(${COMPONENT_LIB}
+# #     -Wl,--whole-archive
+# #     swiftUnicodeDataTables
+# #     -Wl,--no-whole-archive
+# #     )
+
+
+
 
 
 # List of Swift source files to build.

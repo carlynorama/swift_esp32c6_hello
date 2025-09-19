@@ -23,7 +23,6 @@ ld ... -o binary output.o $(dirname `which swiftc`)/../lib/swift/embedded/armv6m
 
 cp /System/Volumes/Data/Users/$USER/Library/Developer/Toolchains/swift-6.2-RELEASE.xctoolchain/usr/lib/swift/embedded/riscv32-none-none-eabi/libswiftUnicodeDataTables.a libswiftUnicodeDataTables.a
 
-
 https://forums.swift.org/t/how-to-add-libswiftunicodedatatables-a-to-a-esp-idf-project/76925
 https://docs.swift.org/embedded/documentation/embedded/integratewithzephyr
 
