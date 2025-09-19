@@ -4,15 +4,15 @@
 
 final class HTTPClient {
 
-    func test() {
-        //let type = HTTPHello()
-        //print(type.helloInt)
-    }
-
     // func test() {
-    //     let request = HTTPRequest(method: .get, scheme: "https", authority: "www.example.com", path: "/")
-    //     print(request.scheme)
+    //     //let type = HTTPHello()
+    //     //print(type.helloInt)
     // }
+
+    func test() {
+        let request = HTTPRequest(method: .get, scheme: "https", authority: "www.example.com", path: "/")
+        print(request.scheme ?? "no scheme")
+    }
 
     func getAndPrint(from host: String, route: String) {
         print("Getting...")
