@@ -91,7 +91,7 @@ target_sources(${COMPONENT_LIB}
     Delay.swift     
     ErrorHandler.swift
     WiFi.swift
-    HTTP.swift
+    HTTPClient/HTTP.swift
     HTTPRevisedTypes/HTTPField.swift
     HTTPRevisedTypes/HTTPFieldName.swift
     HTTPRevisedTypes/HTTPFields.swift

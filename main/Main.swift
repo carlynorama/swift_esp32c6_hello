@@ -23,9 +23,10 @@ func main() {
 
     //Waiting for wifi to connect...
   delay(2000);
-  let client = HTTPClient()
+  let client = MyClient()
   client.getAndPrint(from: "example.com", route: "/")
   client.test()
+  let _ = try? client.getAddressInfo()
 
   while true {
     if button.isActive {
