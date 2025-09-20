@@ -1,4 +1,5 @@
 #include "http_bridge.h"
+#include <stdio.h>
 
 int http_bridge_bridge_return_twelve(void)
 {
@@ -44,6 +45,7 @@ int http_bridge_get(const char *host, const char *path) {
     
     printf("F");
     char req[128];
+    printf("requestSize: %u", sizeof(req));
     snprintf(req, sizeof(req),
              "GET %s HTTP/1.0\r\n"
              "Host: %s\r\n"
@@ -51,6 +53,7 @@ int http_bridge_get(const char *host, const char *path) {
              "\r\n",
              path, host);
 
+    printf("stringLength: %u", strlen(req));
     if (write(s, req, strlen(req)) < 0) {
         printf("send failed");
         close(s);
@@ -65,4 +68,24 @@ int http_bridge_get(const char *host, const char *path) {
     }
     close(s);
     return 0;
+}
+// int http_bridge_just_write(const socklen_t s, const char *host, const char *path)
+int http_bridge_just_write(const int s, const char *host, const char *path) {
+    char req[128];
+    printf("requestSize: %u", sizeof(req));
+    snprintf(req, sizeof(req),
+             "GET %s HTTP/1.0\r\n"
+             "Host: %s\r\n"
+             "User-Agent: esp-idf/5.5\r\n"
+             "\r\n",
+             path, host);
+
+    printf("stringLength: %u", strlen(req));
+    int err_or_count = write(s, req, strlen(req));
+    if (err_or_count < 0) {
+        printf("send failed");
+        close(s);
+        return 4;
+    }
+    return err_or_count;
 }
