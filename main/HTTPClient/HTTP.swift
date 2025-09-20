@@ -23,23 +23,27 @@ enum HTTPClientError: Error {
 }
 
 protocol HTTPClient {
+  //a way to @available by sdk?
   func getAndPrint(from: String, route: String, useHTTPS: Bool)
 
-  //make private after they work.
-  func getAddressInfo() throws(HTTPClientError)
 }
 
 final class MyClient: HTTPClient {
   internal typealias AddrInfo = addrinfo
   internal typealias SocketAddress = sockaddr
-  internal typealias SocketHandle = CInt
+  internal typealias SocketHandle = CInt  //none of the functions use socklen_t?
 
-  var currentInfo: addrinfo?
+  //var currentInfo: addrinfo?
+  var currentInfo: UnsafeMutablePointer<addrinfo>?
   var openSocket: SocketHandle?
 
   deinit {
     if let openSocket {
       close(openSocket)
+    }
+    //Is this needed? freeaddrinfo instead? 
+    if let currentInfo {
+      currentInfo.deallocate()
     }
   }
 
@@ -49,54 +53,60 @@ final class MyClient: HTTPClient {
     print(request.scheme ?? "no scheme")
   }
 
-  func test2() {
+  func test2(host:String, path:String) {
     do {
       print("resolving...")
-      try getAddressInfo()
+      try getAddressInfo(for: host)
       print("connecting...")
       openSocket = try connectSocket()
       print("writing...")
-      try writeRequest(path: "/", host: "example.com")
+      //try writeRequest(socket: openSocket!, path: path, host: host)
+      wrappedWrite(with: openSocket!, to: host, at: path)
       print("listening...")
       let response = try getResponse()
       if let message = String(validatingUTF8: response) {
         print(message)
       }
       print("done")
-    } catch let myError {
+    } catch let myError  {
       print("Error info: \(myError.describe)")
       if let openSocket {
         close(openSocket)
       }
     }
-
   }
 
-
-
-  func getAddressInfo() throws(HTTPClientError) {
+  func getAddressInfo(for host: String) throws(HTTPClientError) {
     currentInfo = nil
-    var retry = 6 
+    var retry = 6
+    let local_host = host.utf8CString
     while retry > 0 {
-        var result: UnsafeMutablePointer<addrinfo>?
-        defer { result?.deallocate() }
-        let serviceName = "80"  //.utf8CString doesn't work?
-        var hints: AddrInfo = addrinfo()
-        hints.ai_socktype = SOCK_STREAM  //vs SOCK_DGRAM
-        hints.ai_protocol = AF_INET  //IP version 4, vs 6 or unix
-        let error = getaddrinfo("example.com", serviceName, &hints, &result)
-        if error == 0 {
-            currentInfo = result?.pointee
-            retry = 0
-            print("got it.")
-            return
+
+      // let port = 80  //port or service. port avoids string problem?
+      //                     //not 100% sure that passing "\(port)" works.
+      //                     //so until can test it, hard code.
+      var hints: AddrInfo = addrinfo()
+      hints.ai_socktype = SOCK_STREAM  //vs SOCK_DGRAM
+      hints.ai_protocol = AF_INET  //IP version 4, vs 6 or unix
+      let error = local_host.withContiguousStorageIfAvailable { host_name in
+        return getaddrinfo(host_name.baseAddress, "80", &hints, &currentInfo)
+      }
+      if error == 0 {
+        // currentInfo = result?.pointee
+        print("got it.")
+        retry = 0
+        return
+      } else {
+        if error == nil {
+          print("why wasn't contiguous storage available?")
         } else {
-            print("getAddressInfo error: \(error)")
-            retry = retry - 1
+          print("getAddressInfo error: \(error!)")
         }
+        retry = retry - 1
+      }
     }
-      currentInfo = nil
-      throw HTTPClientError.hostUnresolved
+    currentInfo = nil
+    throw HTTPClientError.hostUnresolved
 
   }
 
@@ -104,39 +114,50 @@ final class MyClient: HTTPClient {
   func connectSocket() throws(HTTPClientError) -> SocketHandle {
     if let currentInfo {
       print("I have AddressInfo")
-      let socket: SocketHandle = socket(currentInfo.ai_family, currentInfo.ai_socktype, 0)
+      let socket: SocketHandle = socket(
+        currentInfo.pointee.ai_family, currentInfo.pointee.ai_socktype, 0)
       if socket < 0 {
         throw HTTPClientError.couldNotMakeSocket
       }
       print("socketHandle: \(socket)")
-        var retry = 6 
-        while retry > 0 {
-            let connectValue = connect(socket, currentInfo.ai_addr, currentInfo.ai_addrlen)
-            if connectValue == 0 {
-                retry = 0
-                return socket
-            } else {
-                print("connect returned \(connectValue)")
-            }
-            delay(500)
-            retry = retry - 1
-            print("retry connect \(retry)")
+      var retry = 6
+      while retry > 0 {
+        let connectValue = connect(
+          socket, currentInfo.pointee.ai_addr, currentInfo.pointee.ai_addrlen)
+        if connectValue == 0 {
+          retry = 0
+          return socket
+        } else {
+          print("connect returned \(connectValue)")
         }
-        close(socket)
-        throw HTTPClientError.connectionFailed
+        delay(500)
+        retry = retry - 1
+        print("retry connect \(retry)")
+      }
+      close(socket)
+      throw HTTPClientError.connectionFailed
     }
     throw HTTPClientError.addressUnresolved
   }
 
-  func writeRequest(path: String, host: String) throws(HTTPClientError) {
-    let userAgent = "esp-idf/5.5"
-    let request = "GET \(path) HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: \(userAgent)\r\n"
 
+
+func writeRequest(with socket: SocketHandle, to host: String, at path: String) throws(HTTPClientError) {
+    let userAgent = "esp-idf/5.5"
+    var request: ContiguousArray<CChar> =
+    "GET \(path) HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: \(userAgent)\r\n".utf8CString
+    //made no change. 
+    request.append(0)
+    print("request length: \(request.count)")
+    print("\(request)")
     guard let openSocket else {
       throw HTTPClientError.noSocketOpen
     }
+
     let result = request.withContiguousStorageIfAvailable { request_buffer in
-      return write(openSocket, request_buffer.baseAddress, request_buffer.count)
+      let writeResponse = write(openSocket, request_buffer.baseAddress, request_buffer.count)
+      print("writeResponse: \(writeResponse)")
+      return writeResponse
     }
 
     if result != nil && result! < 0 {
@@ -146,6 +167,7 @@ final class MyClient: HTTPClient {
     }
 
     if result == nil {
+      print("what happened?")
       throw HTTPClientError.unsendableRequest
     }
   }
@@ -172,7 +194,21 @@ final class MyClient: HTTPClient {
     return message
   }
 
-  func getAndPrint(from host: String, route: String, useHTTPS: Bool = true) {
+  func wrappedWrite(with socket: SocketHandle, to host: String, at path: String) {
+    let local_host = host.utf8CString
+    let local_path = path.utf8CString
+    //TODO: test with span/inline array (esp-idf 6? OS26)
+    local_path.withContiguousStorageIfAvailable { route_buffer in
+      local_host.withContiguousStorageIfAvailable { host_buffer in
+        let resultCode = http_bridge_just_write(
+          socket, host_buffer.baseAddress, route_buffer.baseAddress)
+        print("write result code: \(resultCode)")
+      }
+    }
+  }
+
+  //original:
+     func getAndPrint(from host: String, route: String, useHTTPS: Bool = true) {
     //prepare request
     let _ = HTTPRequest(method: .get, scheme: "https", authority: host, path: "/")
 
@@ -188,69 +224,5 @@ final class MyClient: HTTPClient {
     }
 
   }
+
 }
-
-    // var result: UnsafeMutablePointer<addrinfo>?
-    // defer { result?.deallocate() }
-    // let serviceName = "80"  //.utf8CString doesn't work?
-    // var hints: AddrInfo = addrinfo()
-    // hints.ai_socktype = SOCK_STREAM  //vs SOCK_DGRAM
-    // hints.ai_protocol = AF_INET  //IP version 4, vs 6 or unix
-    // let error = getaddrinfo("todbot.com", serviceName, &hints, &result)
-    // print("getAddressInfo: \(error)")
-    // //print("\(result)")
-    // guard error == 0 else {
-    //   currentInfo = nil
-    //   throw HTTPClientError.hostUnresolved
-    // }
-    // currentInfo = result?.pointee
-
-// func printAddrInfo() {
-
-// }
-
-//   func test3() {
-//     do {
-//       print("resolving...")
-//       var result_add: UnsafeMutablePointer<addrinfo>?
-//       defer { result_add?.deallocate() }
-//       let serviceName = "80"  //.utf8CString doesn't work?
-//       var hints: AddrInfo = addrinfo()
-//       hints.ai_socktype = SOCK_STREAM  //vs SOCK_DGRAM
-//       hints.ai_protocol = AF_INET  //IP version 4, vs 6 or unix
-//       let error = getaddrinfo("todbot.com", serviceName, &hints, &result_add)
-//       print("getAddressInfo: \(error)")
-//       //print("\(result)")
-//       guard error == 0 else {
-//         //   currentInfo = nil
-//         throw HTTPClientError.hostUnresolved
-//       }
-//       print("connecting...")
-//         if let result_add {
-//                         let socket: SocketHandle = socket(result_add.pointee.ai_family, result_add.pointee.ai_socktype, 0)
-//         if socket < 0 {
-//             throw HTTPClientError.couldNotMakeSocket
-//         }
-//         let ret = connect(socket, result_add.pointee.ai_addr, result_add.pointee.ai_addrlen)
-//         delay(500)
-//         print(
-//             "\(result_add.pointee.ai_addr.pointee.sa_family), \(result_add.pointee.ai_addr.pointee.sa_data), \(result_add.pointee.ai_addr.pointee.sa_len), \(result_add.pointee.ai_addrlen)"
-//         )
-//         print("return value: \(ret))")
-//         if ret != 0 {
-
-//         }
-
-//       }
-
-      
-//     } catch let myError as HTTPClientError {
-//       print("Error info: \(myError.describe)")
-//       if let openSocket {
-//         close(openSocket)
-//       }
-//     } catch {
-//       print("some other error.")
-//     }
-
-//   }
