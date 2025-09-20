@@ -18,13 +18,13 @@ func main() {
   print(wifi_bridge_return_twelve())
 
   let wifi = WiFiStation()
-  wifi.connect(ssid: "YOURNETWORK", password: "YOURPASSWORD")
+  wifi.connect(ssid: "todbot", password: "maxwellcat")
   
 
     //Waiting for wifi to connect...
   delay(2000);
   let client = MyClient()
-  client.getAndPrint(from: "example.com", route: "/")
+  // client.getAndPrint(from: "01k5kwbw3wdhv295vefspdppya00-a23e5bd36f8272130820.requestinspector.com", route: "/")
   // client.test()
   // let _ = try? client.test2()
 
@@ -36,6 +36,7 @@ func main() {
   
 
   while true {
+    //let _ = client.test2(host: "192.168.42.124", path: "/", port: 8080)
     let _ = client.test2(host: "example.com", path: "/" )
     if button.isActive {
       led.blink(millis: 500)

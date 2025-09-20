@@ -53,14 +53,14 @@ final class MyClient: HTTPClient {
     print(request.scheme ?? "no scheme")
   }
 
-  func test2(host:String, path:String) {
+  func test2(host:String, path:String, port:Int = 80) {
     do {
       print("resolving...")
-      try getAddressInfo(for: host)
+      try getAddressInfo(for: host, using: port)
       print("connecting...")
       openSocket = try connectSocket()
       print("writing...")
-      try writeRequest(with: openSocket!, to: path, at: host)
+      try writeRequest(with: openSocket!, to: host, at: path)
       //wrappedWrite(with: openSocket!, to: host, at: path)
       //TODO - close socket if error throw .sendFailed, .unsendableRequest
       print("listening...")
@@ -78,7 +78,7 @@ final class MyClient: HTTPClient {
     }
   }
 
-  func getAddressInfo(for host: String) throws(HTTPClientError) {
+  func getAddressInfo(for host: String, using port:Int = 80) throws(HTTPClientError) {
     currentInfo = nil
     var retry = 6
     let local_host = host.utf8CString
@@ -91,7 +91,7 @@ final class MyClient: HTTPClient {
       hints.ai_socktype = SOCK_STREAM  //vs SOCK_DGRAM
       hints.ai_protocol = AF_INET  //IP version 4, vs 6 or unix
       let error = local_host.withContiguousStorageIfAvailable { host_name in
-        return getaddrinfo(host_name.baseAddress, "80", &hints, &currentInfo)
+        return getaddrinfo(host_name.baseAddress, "\(port)", &hints, &currentInfo)
       }
       if error == 0 {
         // currentInfo = result?.pointee
@@ -146,15 +146,11 @@ final class MyClient: HTTPClient {
 
 func writeRequest(with socket: SocketHandle, to host: String, at path: String) throws(HTTPClientError) {
     let userAgent = "esp-idf/5.5"
+    //DON'T FORGET THE CLOSING \r\n
     var request: ContiguousArray<CChar> =
-    "GET \(path) HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: \(userAgent)\r\n".utf8CString
-    //made no change. 
-    request.append(0)
+    "GET \(path) HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: \(userAgent)\r\n\r\n".utf8CString
     print("request length: \(request.count)")
     print("\(request)")
-    // guard let openSocket else {
-    //   throw HTTPClientError.noSocketOpen
-    // }
 
     let result = request.withContiguousStorageIfAvailable { request_buffer in
       let writeResponse = write(socket, request_buffer.baseAddress, request_buffer.count)
