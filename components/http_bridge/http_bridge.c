@@ -6,7 +6,7 @@ int http_bridge_bridge_return_twelve(void)
 }
 
 int http_bridge_get(const char *host, const char *path) {
-    printf("A");
+    printf("A\n");
     struct addrinfo hints = {
         .ai_family = AF_INET,
         .ai_socktype = SOCK_STREAM,
@@ -14,12 +14,12 @@ int http_bridge_get(const char *host, const char *path) {
     struct addrinfo *res;
     int s;
 
-    printf("B");
+    printf("B\n");
     char port_str[] = "80";
     int err = getaddrinfo(host, port_str, &hints, &res);
     //int err = getaddrinfo(host, port_str, &hints, &res);
     if (err != 0 || res == NULL) {
-        printf("DNS lookup failed for %s", host);
+        printf("DNS lookup failed for %s\n", host);
         return 1;
     }
 
