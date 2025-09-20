@@ -60,8 +60,9 @@ final class MyClient: HTTPClient {
       print("connecting...")
       openSocket = try connectSocket()
       print("writing...")
-      //try writeRequest(socket: openSocket!, path: path, host: host)
-      wrappedWrite(with: openSocket!, to: host, at: path)
+      try writeRequest(with: openSocket!, to: path, at: host)
+      //wrappedWrite(with: openSocket!, to: host, at: path)
+      //TODO - close socket if error throw .sendFailed, .unsendableRequest
       print("listening...")
       let response = try getResponse()
       if let message = String(validatingUTF8: response) {
@@ -72,6 +73,7 @@ final class MyClient: HTTPClient {
       print("Error info: \(myError.describe)")
       if let openSocket {
         close(openSocket)
+        currentInfo = nil //does this free? 
       }
     }
   }
@@ -150,19 +152,19 @@ func writeRequest(with socket: SocketHandle, to host: String, at path: String) t
     request.append(0)
     print("request length: \(request.count)")
     print("\(request)")
-    guard let openSocket else {
-      throw HTTPClientError.noSocketOpen
-    }
+    // guard let openSocket else {
+    //   throw HTTPClientError.noSocketOpen
+    // }
 
     let result = request.withContiguousStorageIfAvailable { request_buffer in
-      let writeResponse = write(openSocket, request_buffer.baseAddress, request_buffer.count)
+      let writeResponse = write(socket, request_buffer.baseAddress, request_buffer.count)
       print("writeResponse: \(writeResponse)")
       return writeResponse
     }
 
     if result != nil && result! < 0 {
-      close(openSocket)
-      self.openSocket = nil
+         close(socket)
+         self.openSocket = nil
       throw HTTPClientError.sendFailed
     }
 
