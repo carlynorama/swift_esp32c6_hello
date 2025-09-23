@@ -1,37 +1,29 @@
 //No import b/c  HTTPRevisedTypes isn't a Library.
 
-enum HTTPClientError: Error {
-  case hostUnresolved
-  case couldNotMakeSocket
-  case connectionFailed
-  case addressUnresolved
-  case noSocketOpen
-  case sendFailed
-  case unsendableRequest
-
-  var describe: String {
-    return switch self {
-    case .hostUnresolved: "hostUnresolved"
-    case .couldNotMakeSocket: "couldNotMakeSocket"
-    case .connectionFailed: "connectionFailed"
-    case .addressUnresolved: "addressUnresolved"
-    case .noSocketOpen: "noSocketOpen"
-    case .sendFailed: "sendFailed"
-    case .unsendableRequest: "unsendableRequest"
-    }
-  }
+struct  ServerInfo {
+    //scheme is always http
+    //let useHTTPS: Bool = true
+    let host:String //TODO: will have to split to domain for dns lookup?
+    let port:Int
+    //let basePath = String //future
 }
 
-protocol HTTPClient {
-  //a way to @available by sdk?
-  func getAndPrint(from: String, route: String, useHTTPS: Bool)
-
-}
 
 final class MyClient: HTTPClient {
   internal typealias AddrInfo = addrinfo
   internal typealias SocketAddress = sockaddr
   internal typealias SocketHandle = CInt  //none of the functions use socklen_t?
+
+  var defaultServer: ServerInfo
+  let userAgent = "esp-idf/5.5"
+
+  init(host: String, port: Int? = nil) {
+    if port == nil {
+      self.defaultServer = ServerInfo(host: host, port: 80)
+    } else {
+      self.defaultServer = ServerInfo(host: host, port: port!)
+    }
+  }
 
   //var currentInfo: addrinfo?
   var currentInfo: UnsafeMutablePointer<addrinfo>?
@@ -41,26 +33,32 @@ final class MyClient: HTTPClient {
     if let openSocket {
       close(openSocket)
     }
-    //Is this needed? freeaddrinfo instead? 
+    //Is this needed? freeaddrinfo instead?
     if let currentInfo {
-      currentInfo.deallocate()
+      freeaddrinfo(currentInfo)
     }
   }
 
-  func test() {
-    let request = HTTPRequest(
-      method: .get, scheme: "https", authority: "www.example.com", path: "/")
-    print(request.scheme ?? "no scheme")
+  // func test() {
+  //   let request = HTTPRequest(
+  //     method: .get, scheme: "https", authority: "www.example.com", path: "/")
+  //   print(request.scheme ?? "no scheme")
+  // }
+
+  public func fetch(_ path: String) {
+    fetch(path, from:defaultServer)
   }
 
-  func test2(host:String, path:String, port:Int = 80) {
+  public func fetch(_ path: String, from server:ServerInfo) {
     do {
       print("resolving...")
-      try getAddressInfo(for: host, using: port)
+      try getAddressInfo(for: server.host, using: server.port)
       print("connecting...")
       openSocket = try connectSocket()
+      freeaddrinfo(currentInfo) //addrinfo has a freshness value.
+      assert(currentInfo == nil)
       print("writing...")
-      try writeRequest(with: openSocket!, to: host, at: path)
+      try writeRequest(with: openSocket!, to: defaultServer.host, at: path)
       //wrappedWrite(with: openSocket!, to: host, at: path)
       //TODO - close socket if error throw .sendFailed, .unsendableRequest
       print("listening...")
@@ -69,16 +67,16 @@ final class MyClient: HTTPClient {
         print(message)
       }
       print("done")
-    } catch let myError  {
+    } catch let myError {
       print("Error info: \(myError.describe)")
       if let openSocket {
         close(openSocket)
-        currentInfo = nil //does this free? 
+        currentInfo = nil  //does this free?
       }
     }
   }
 
-  func getAddressInfo(for host: String, using port:Int = 80) throws(HTTPClientError) {
+  private func getAddressInfo(for host: String, using port: Int = 80) throws(HTTPClientError) {
     currentInfo = nil
     var retry = 6
     let local_host = host.utf8CString
@@ -113,7 +111,7 @@ final class MyClient: HTTPClient {
   }
 
   //https://github.com/apple/swift-nio/blob/6c114e3c62ff84ef325d5071b42171d84b63e8a5/Sources/NIOPosix/Socket.swift#L123
-  func connectSocket() throws(HTTPClientError) -> SocketHandle {
+  private func connectSocket() throws(HTTPClientError) -> SocketHandle {
     if let currentInfo {
       print("I have AddressInfo")
       let socket: SocketHandle = socket(
@@ -142,13 +140,12 @@ final class MyClient: HTTPClient {
     throw HTTPClientError.addressUnresolved
   }
 
-
-
-func writeRequest(with socket: SocketHandle, to host: String, at path: String) throws(HTTPClientError) {
-    let userAgent = "esp-idf/5.5"
+  private func writeRequest(with socket: SocketHandle, to host: String, at path: String)
+    throws(HTTPClientError)
+  {
     //DON'T FORGET THE CLOSING \r\n
-    var request: ContiguousArray<CChar> =
-    "GET \(path) HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: \(userAgent)\r\n\r\n".utf8CString
+    let request: ContiguousArray<CChar> =
+      "GET \(path) HTTP/1.0\r\nHost: \(host)\r\nUser-Agent: \(userAgent)\r\n\r\n".utf8CString
     print("request length: \(request.count)")
     print("\(request)")
 
@@ -159,8 +156,8 @@ func writeRequest(with socket: SocketHandle, to host: String, at path: String) t
     }
 
     if result != nil && result! < 0 {
-         close(socket)
-         self.openSocket = nil
+      close(socket)
+      self.openSocket = nil
       throw HTTPClientError.sendFailed
     }
 
@@ -170,7 +167,7 @@ func writeRequest(with socket: SocketHandle, to host: String, at path: String) t
     }
   }
 
-  func getResponse() throws(HTTPClientError) -> [Int8] {
+  private func getResponse() throws(HTTPClientError) -> [Int8] {
     var message: [Int8] = []
     var buffer: [Int8] = Array(repeating: 0, count: 512)
 
@@ -192,7 +189,7 @@ func writeRequest(with socket: SocketHandle, to host: String, at path: String) t
     return message
   }
 
-  func wrappedWrite(with socket: SocketHandle, to host: String, at path: String) {
+  private func wrappedWrite(with socket: SocketHandle, to host: String, at path: String) {
     let local_host = host.utf8CString
     let local_path = path.utf8CString
     //TODO: test with span/inline array (esp-idf 6? OS26)
@@ -206,21 +203,20 @@ func writeRequest(with socket: SocketHandle, to host: String, at path: String) t
   }
 
   //original:
-     func getAndPrint(from host: String, route: String, useHTTPS: Bool = true) {
-    //prepare request
-    let _ = HTTPRequest(method: .get, scheme: "https", authority: host, path: "/")
+  // func getAndPrint(from host: String, route: String, useHTTPS: Bool = true) {
+  //   //prepare request
+  //   let _ = HTTPRequest(method: .get, scheme: "https", authority: host, path: "/")
 
-    let local_host = host.utf8CString
-    let local_route = route.utf8CString
+  //   let local_host = host.utf8CString
+  //   let local_route = route.utf8CString
 
-    //TODO: test with span on beta?
-    local_route.withContiguousStorageIfAvailable { route_buffer in
-      local_host.withContiguousStorageIfAvailable { host_buffer in
-        let resultCode = http_bridge_get(host_buffer.baseAddress, route_buffer.baseAddress)
-        print("result code: \(resultCode)")
-      }
-    }
-
-  }
+  //   //TODO: test with span on beta?
+  //   local_route.withContiguousStorageIfAvailable { route_buffer in
+  //     local_host.withContiguousStorageIfAvailable { host_buffer in
+  //       let resultCode = http_bridge_get(host_buffer.baseAddress, route_buffer.baseAddress)
+  //       print("result code: \(resultCode)")
+  //     }
+  //   }
+  //}
 
 }
