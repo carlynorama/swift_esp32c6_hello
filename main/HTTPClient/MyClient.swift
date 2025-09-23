@@ -1,16 +1,15 @@
 //No import b/c  HTTPRevisedTypes isn't a Library.
 
-struct  ServerInfo {
-    //scheme is always http
-    //let useHTTPS: Bool = true
-    let host:String //TODO: will have to split to domain for dns lookup?
-    let port:Int
-    //let basePath = String //future
+struct ServerInfo {
+  //scheme is always http
+  //let useHTTPS: Bool = true
+  let host: String  //TODO: will have to split to domain for dns lookup?
+  let port: Int
+  //let basePath = String //future
 }
 
-
 final class MyClient: HTTPClient {
-  internal typealias AddrInfo = addrinfo
+  internal typealias AddressInfo = addrinfo
   internal typealias SocketAddress = sockaddr
   internal typealias SocketHandle = CInt  //none of the functions use socklen_t?
 
@@ -26,7 +25,7 @@ final class MyClient: HTTPClient {
   }
 
   //var currentInfo: addrinfo?
-  var currentInfo: UnsafeMutablePointer<addrinfo>?
+  var currentInfo: UnsafeMutablePointer<AddressInfo>?
   var openSocket: SocketHandle?
 
   deinit {
@@ -46,32 +45,38 @@ final class MyClient: HTTPClient {
   // }
 
   public func fetch(_ path: String) {
-    fetch(path, from:defaultServer)
+    fetch(path, from: defaultServer)
   }
 
-  public func fetch(_ path: String, from server:ServerInfo) {
+  public func fetch(_ path: String, from server: ServerInfo) {
     do {
       print("resolving...")
       try getAddressInfo(for: server.host, using: server.port)
       print("connecting...")
       openSocket = try connectSocket()
-      freeaddrinfo(currentInfo) //addrinfo has a freshness value.
-      assert(currentInfo == nil)
+      freeaddrinfo(currentInfo)  // addrinfo has a freshness value.
+      assert(currentInfo == nil) // test to see if that did nill it. 
+      print("currentInfo is nil: \(currentInfo == nil)")
       print("writing...")
       try writeRequest(with: openSocket!, to: defaultServer.host, at: path)
       //wrappedWrite(with: openSocket!, to: host, at: path)
-      //TODO - close socket if error throw .sendFailed, .unsendableRequest
+
       print("listening...")
       let response = try getResponse()
-      if let message = String(validatingUTF8: response) {
-        print(message)
-      }
+      print("response count:\(response.count)")
+      let message = ISOLatin1String(response) 
+      print(message.string)
+      
       print("done")
+
+
     } catch let myError {
       print("Error info: \(myError.describe)")
       if let openSocket {
         close(openSocket)
-        currentInfo = nil  //does this free?
+      }
+      if let currentInfo {
+        freeaddrinfo(currentInfo)
       }
     }
   }
@@ -81,11 +86,7 @@ final class MyClient: HTTPClient {
     var retry = 6
     let local_host = host.utf8CString
     while retry > 0 {
-
-      // let port = 80  //port or service. port avoids string problem?
-      //                     //not 100% sure that passing "\(port)" works.
-      //                     //so until can test it, hard code.
-      var hints: AddrInfo = addrinfo()
+      var hints: AddressInfo = addrinfo()
       hints.ai_socktype = SOCK_STREAM  //vs SOCK_DGRAM
       hints.ai_protocol = AF_INET  //IP version 4, vs 6 or unix
       let error = local_host.withContiguousStorageIfAvailable { host_name in
@@ -110,7 +111,6 @@ final class MyClient: HTTPClient {
 
   }
 
-  //https://github.com/apple/swift-nio/blob/6c114e3c62ff84ef325d5071b42171d84b63e8a5/Sources/NIOPosix/Socket.swift#L123
   private func connectSocket() throws(HTTPClientError) -> SocketHandle {
     if let currentInfo {
       print("I have AddressInfo")
@@ -167,25 +167,37 @@ final class MyClient: HTTPClient {
     }
   }
 
-  private func getResponse() throws(HTTPClientError) -> [Int8] {
-    var message: [Int8] = []
-    var buffer: [Int8] = Array(repeating: 0, count: 512)
+  private func getResponse() throws(HTTPClientError) -> [UInt8] {
+    var message: [UInt8] = []
+    var buffer: [UInt8] = Array(repeating: 0, count: 512)
+    var sum:CInt = 0
 
     guard let openSocket else {
       throw HTTPClientError.noSocketOpen
     }
     let _ = buffer.withContiguousMutableStorageIfAvailable { buffer in
       var r: CInt
+      //r = read(openSocket, buffer.baseAddress, buffer.count - 1)
       repeat {
         r = read(openSocket, buffer.baseAddress, buffer.count - 1)
+        print("bytes read: \(r)")
+        sum = sum + r
         buffer[Int(r)] = 0  // null terminate
-        message.append(contentsOf: buffer)
+        message.append(contentsOf: buffer.prefix(Int(r)))
       } while r > 0
     }
 
+    print("byte sum: \(sum)")
     close(openSocket)
     self.openSocket = nil
+    //won't work not that returning UInt8 for Latin
+    // for byte in message {
+    //   //print("\(byte): \(String(validatingCString: [byte, 0]) ?? "not string"), ")
+    // }
+    // print("\n")
 
+    message.append(0)
+    
     return message
   }
 
