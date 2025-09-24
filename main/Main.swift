@@ -23,20 +23,9 @@ func main() {
 
     //Waiting for wifi to connect...
   delay(2000);
-  let exampleClient: some HTTPClient = MyClient(host: "example.com")
-  // client.getAndPrint(from: "01k5kwbw3wdhv295vefspdppya00-a23e5bd36f8272130820.requestinspector.com", route: "/")
-  // client.test()
-  // let _ = try? client.test2()
-
-  // delay(5000);
-  // let _ = try? client.test2()
-
-    
-
-  
+  let exampleClient: some HTTPClient = MyClient(host: "example.com")  
 
   while true {
-    //let _ = client.test2(host: "192.168.42.124", path: "/", port: 8080)
     let _ = exampleClient.fetch("/")
     if button.isActive {
       led.blink(millis: 500)

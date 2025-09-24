@@ -62,10 +62,17 @@ final class MyClient: HTTPClient {
       //wrappedWrite(with: openSocket!, to: host, at: path)
 
       print("listening...")
-      let response = try getResponse()
+      let response = try listenForResponse()
       print("response count:\(response.count)")
-      let message = ISOLatin1String(response) 
-      print(message.string)
+      //for the future. 
+      //let message = ISOLatin1String(response) 
+
+      if let message = String(validating: response, as: UTF8.self) {
+        print("message was valid UTF8")
+        print(message)
+      } else {
+        print("message could not be decoded as UTF8")
+      }
       
       print("done")
 
@@ -167,52 +174,46 @@ final class MyClient: HTTPClient {
     }
   }
 
-  private func getResponse() throws(HTTPClientError) -> [UInt8] {
+  private func listenForResponse() throws(HTTPClientError) -> [UInt8] {
     var message: [UInt8] = []
     var buffer: [UInt8] = Array(repeating: 0, count: 512)
-    var sum:CInt = 0
+    //var sum:CInt = 0
 
     guard let openSocket else {
       throw HTTPClientError.noSocketOpen
     }
     let _ = buffer.withContiguousMutableStorageIfAvailable { buffer in
       var r: CInt
-      //r = read(openSocket, buffer.baseAddress, buffer.count - 1)
       repeat {
         r = read(openSocket, buffer.baseAddress, buffer.count - 1)
         print("bytes read: \(r)")
-        sum = sum + r
-        buffer[Int(r)] = 0  // null terminate
+        //sum = sum + r
         message.append(contentsOf: buffer.prefix(Int(r)))
       } while r > 0
     }
 
-    print("byte sum: \(sum)")
+    //print("byte sum: \(sum)")
     close(openSocket)
     self.openSocket = nil
-    //won't work not that returning UInt8 for Latin
-    // for byte in message {
-    //   //print("\(byte): \(String(validatingCString: [byte, 0]) ?? "not string"), ")
-    // }
-    // print("\n")
 
-    message.append(0)
-    
+    //DO NOT NULL TERMINATE IF NOT USING CChar
+    //message.append(0)
+
     return message
   }
 
-  private func wrappedWrite(with socket: SocketHandle, to host: String, at path: String) {
-    let local_host = host.utf8CString
-    let local_path = path.utf8CString
-    //TODO: test with span/inline array (esp-idf 6? OS26)
-    local_path.withContiguousStorageIfAvailable { route_buffer in
-      local_host.withContiguousStorageIfAvailable { host_buffer in
-        let resultCode = http_bridge_just_write(
-          socket, host_buffer.baseAddress, route_buffer.baseAddress)
-        print("write result code: \(resultCode)")
-      }
-    }
-  }
+  // private func wrappedWrite(with socket: SocketHandle, to host: String, at path: String) {
+  //   let local_host = host.utf8CString
+  //   let local_path = path.utf8CString
+  //   //TODO: test with span/inline array (esp-idf 6? OS26)
+  //   local_path.withContiguousStorageIfAvailable { route_buffer in
+  //     local_host.withContiguousStorageIfAvailable { host_buffer in
+  //       let resultCode = http_bridge_just_write(
+  //         socket, host_buffer.baseAddress, route_buffer.baseAddress)
+  //       print("write result code: \(resultCode)")
+  //     }
+  //   }
+  // }
 
   //original:
   // func getAndPrint(from host: String, route: String, useHTTPS: Bool = true) {
