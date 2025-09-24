@@ -58,6 +58,28 @@ set(CMAKE_Swift_COMPILATION_MODE_DEFAULT wholemodule)
 set(CMAKE_Swift_COMPILATION_MODE wholemodule)
 enable_language(Swift)
 
+
+set(ESP32C6_COMPILER_TARGET "riscv32-none-none-eabi")
+
+find_program(SWIFTLY "swiftly")
+IF(SWIFTLY)
+  execute_process(COMMAND swiftly use --print-location OUTPUT_VARIABLE toolchain_path OUTPUT_STRIP_TRAILING_WHITESPACE)
+  cmake_path(SET additional_lib_path NORMALIZE "${toolchain_path}/usr/lib/swift/embedded/${ESP32C6_COMPILER_TARGET}")
+ELSE()
+  get_filename_component(compiler_bin_dir ${CMAKE_Swift_COMPILER} DIRECTORY)
+  cmake_path(SET additional_lib_path NORMALIZE "${compiler_bin_dir}/../lib/swift/embedded/${ESP32C6_COMPILER_TARGET}")
+ENDIF()
+
+# message(" ---::: ${additional_lib_path} :::---------- ")
+
+target_link_directories(${COMPONENT_LIB} PUBLIC "${additional_lib_path}")
+target_link_libraries(${COMPONENT_LIB}
+    -Wl,--whole-archive
+    swiftUnicodeDataTables
+    -Wl,--no-whole-archive
+    )
+
+
 # List of Swift source files to build.
 target_sources(${COMPONENT_LIB}
     PRIVATE
@@ -69,7 +91,17 @@ target_sources(${COMPONENT_LIB}
     Delay.swift     
     ErrorHandler.swift
     WiFi.swift
-    HTTP.swift
+    HTTPClient/HTTPClientError.swift
+    HTTPClient/HTTPClientProtocol.swift
+    HTTPClient/MyClient.swift
+    HTTPRevisedTypes/HTTPField.swift
+    HTTPRevisedTypes/HTTPFieldName.swift
+    HTTPRevisedTypes/HTTPFields.swift
+    HTTPRevisedTypes/HTTPParsedFields.swift
+    HTTPRevisedTypes/HTTPRequest.swift
+    HTTPRevisedTypes/HTTPResponse.swift
+    HTTPRevisedTypes/ISOLatin1String.swift
+    HTTPRevisedTypes/NIOLock.swift
 )
 
 add_custom_command(

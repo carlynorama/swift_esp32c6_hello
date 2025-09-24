@@ -76,6 +76,6 @@ esp_err_t wifi_bridge_wifi_set_config_and_connect(const char *wifi_ssid, const c
     } else {
         return ret;
     }
-
+    printf("worked\n");
     return ret;
 }

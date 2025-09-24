@@ -6,3 +6,5 @@
 int http_bridge_bridge_return_twelve(void);
 
 int http_bridge_get(const char *host, const char *path);
+
+int http_bridge_just_write(const int s, const char *host, const char *path);

@@ -18,19 +18,20 @@ func main() {
   print(wifi_bridge_return_twelve())
 
   let wifi = WiFiStation()
-  wifi.connect(ssid: "somenetwork", password: "somepassword")
+  wifi.connect(ssid: "somessid", password: "somepassword")
   
 
     //Waiting for wifi to connect...
   delay(2000);
-  let client = HTTPClient()
-  client.getAndPrint(from: "example.com", route: "/")
+  let exampleClient: some HTTPClient = MyClient(host: "example.com")  
 
   while true {
+    let _ = exampleClient.fetch("/")
     if button.isActive {
       led.blink(millis: 500)
     } else {
       led.blink(millis: 2000)
     }
+    delay(3000);
   }
 }
