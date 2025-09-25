@@ -18,31 +18,20 @@ func main() {
   print("Hello from Swift on ESP32-C6!")
   print(wifi_bridge_return_twelve())
 
-  // let wifi = WiFiStation()
-  // wifi.connect(ssid: "somessid", password: "somepassword")
-  
+  let wifi = WiFiStation()
+  wifi.connect(ssid: "somessid", password: "somepassword")
+
 
     //Waiting for wifi to connect...
   delay(2000);
-  // let exampleClient: some HTTPClient = MyClient(host: "example.com")  
+  
+  let exampleClient: some HTTPClient = MyClient(host: "example.com")  
 
   while true {
-    //let _ = exampleClient.fetch("/")
 
-    button.onActivate { print("hello") }
-
-    // if button.isActive {
-    //   led.turnOn()
-    // } else {
-    //   led.turnOff()
-    // }
-  
-    // if button.isActive {
-    //   led.blink(millis: 500)
-    // } else {
-    //   led.blink(millis: 2000)
-    // }
-    //‘‘
-    delay(50); //to help out the monitor printing
+    button.onActivate { 
+      let _ = exampleClient.fetch("/")
+    }
+    delay(50); //to help out the monitor
   }
 }
