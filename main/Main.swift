@@ -6,7 +6,8 @@ func main() {
     fatalError("Difficulty setting up pin.")
   }
 
-  guard let button = MomentaryInput(9) else {
+//new button on pin 2 instead of on the boot pin (9)
+  guard var button = MomentaryInput(2) else {
     fatalError("Difficulty setting up button.")
   }
 
@@ -19,19 +20,18 @@ func main() {
 
   let wifi = WiFiStation()
   wifi.connect(ssid: "somessid", password: "somepassword")
-  
+
 
     //Waiting for wifi to connect...
   delay(2000);
+  
   let exampleClient: some HTTPClient = MyClient(host: "example.com")  
 
   while true {
-    let _ = exampleClient.fetch("/")
-    if button.isActive {
-      led.blink(millis: 500)
-    } else {
-      led.blink(millis: 2000)
+
+    button.onActivate { 
+      let _ = exampleClient.fetch("/")
     }
-    delay(3000);
+    delay(50); //to help out the monitor
   }
 }

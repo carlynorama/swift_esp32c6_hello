@@ -44,6 +44,10 @@ extension GPIOLevel {
     var asBool:Bool {
         (self == .high) ? true : false
     }
+
+    var inverse:GPIOLevel {
+        (self == .high) ? .high : .low
+    }
 }
 
 enum GPIODirection  {
